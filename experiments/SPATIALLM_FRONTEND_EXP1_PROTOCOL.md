@@ -16,6 +16,8 @@
 | 官方发布 test 脚本本身就是 `data.cotqa.msr3d.pc_type=pred` + `nms_iou_threshold=1`（NMS 实际不抑制）——B 臂即官方发布设定 | `scripts/test/full_training_msqa_beacon3d_test_moe.sh` |
 | **MoE 断链**：脚本设 `moe.enable=True` 但模型读的是 `cfg.grounding.moe_flag`，且 `obj_prob_dict_path` 无 yaml 定义、无发布产物 → 三臂统一**不开 MoE**（公平且绕开坑） | `model/scenecot_agent.py:222-228, 813-819` |
 | 评测指标：`em_overall` / `em_refined_overall` + 分题型（counting / existence / spatial relationship / attribute / ...） | `evaluator/msqa_eval_cot.py:24-32` |
+| B 臂分割器是 **Mask3D**（Schult et al. 2022；论文 §3.2/§5.1/Table 3 注明主结果用 Mask3D 提供 mask 与语义标签）；其输出特征与代码吻合（≤100 个带 score 的实例 mask 提议 + ScanNet raw id + NMS） | 论文 arXiv:2510.16714 §3.2 |
+| **校准锚点**（论文 Table 3，全量 test，GPT-score）：Mask3D mask + 预测概率 = 55.6（≈ B 臂 / 论文主表设定）；完美 mask/标签 + 预测概率 = 64.9（≈ A 臂，`pc_type: gt` 正是该设定）；A−B ≈ 9pt，counting 差约 25pt。300 题子集上 A−B 严重偏离此量级 → 先查 harness | 论文 Table 3 |
 | SpatialLM 前端模型：`saves/scannet_exp4/checkpoint-2500`（EXP4 best，macro@.25=0.5825，中心误差中位 0.060m，18 类词表完全收敛） | `experiments/FINETUNE_SCANNET_EXP4_REPORT.md` |
 
 我方 18 类词表（转换脚本 §5.3 需要）：`chair, door, otherfurniture, cabinet, table, window, painting, desk, sofa, sink, bookcase, bed, curtain, toilet, refrigerator, counter, shower_curtain, bathtub`。
